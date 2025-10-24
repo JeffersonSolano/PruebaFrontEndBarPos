@@ -1,0 +1,55 @@
+﻿@page
+@model BarPos.Pages.Cuentas.CreateModel
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<!-- Contenido principal -->
+<div class="container mt-4">
+    <div class="row">
+        <!-- Centra el formulario en pantalla -->
+        <div class="col-md-6 offset-md-3">
+            <div class="card shadow">
+                <!-- Encabezado del formulario -->
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-person-plus"></i> Nueva Cuenta de Cliente
+                    </h4>
+                </div>
+                <!-- Cuerpo del formulario -->
+                <div class="card-body">
+                    <!-- Formulario que envía los datos al servidor -->
+                    <form method="post">
+                        <!-- Muestra errores de validación solo  si los hay) -->
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Cuenta.NombreCliente" class="form-label fw-bold"></label>
+                            <input asp-for="Cuenta.NombreCliente" class="form-control form-control-lg"
+                                   placeholder="Ingrese el nombre del cliente" autofocus />
+                            <span asp-validation-for="Cuenta.NombreCliente" class="text-danger"></span>
+                        </div>
+
+                        <!-- Botón  crear la cuenta -->
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle"></i> Crear Cuenta
+                            </button>
+                            <!-- Botón para regresar al idex -->
+                            <a asp-page="./Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- scripts para validaciones del formulario -->
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

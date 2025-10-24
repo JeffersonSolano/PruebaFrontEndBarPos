@@ -1,0 +1,190 @@
+﻿@page
+@model BarPos.Pages.Cuentas.IndexModel
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<!-- Barra de busqueda -->
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <!-- Formulario que envia los datos por metodo GET -->
+                <form method="get" class="row g-3">
+                    <div class="col-md-10">
+                        <div class="input-group">
+                            <!-- icono de busqueda -->
+                            <span class="input-group-text">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <!-- Campo de texto para buscar por nombre de cliente -->
+                            <input type="text" class="form-control"
+                                   name="BusquedaNombre"
+                                   value="@Model.BusquedaNombre"
+                                   placeholder="Buscar por nombre de cliente..." />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="d-grid gap-2">
+                            <!-- Boton para buscar -->
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Buscar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--  Contenido principal -->
+<div class="container-fluid mt-4">
+    <!-- Encabezado con título y botón para crear nueva cuenta -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2><i class="bi bi-receipt"></i> Gestión de Cuentas</h2>
+                <!-- Botón para crear una nueva cuenta -->
+                <a asp-page="./Create" class="btn btn-success btn-lg">
+                    <i class="bi bi-plus-circle"></i> Nueva Cuenta
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cuentas Abiertas -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <!-- Encabezado verde con el numero total de cuentas abiertas -->
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-folder-open"></i> Cuentas Abiertas
+                        <span class="badge bg-light text-dark">@Model.CuentasAbiertas.Count</span>
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @if (Model.CuentasAbiertas.Any())
+                    {
+                        <!-- Si hay cuentas abiertas se muestran en formato de tarjetas -->
+                        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                            @foreach (var cuenta in Model.CuentasAbiertas)
+                            {
+                                <div class="col">
+                                    <div class="card h-100 border-success">
+                                        <div class="card-body">
+                                            <h5 class="card-title text-success">
+                                                <i class="bi bi-person"></i> @cuenta.NombreCliente
+                                            </h5>
+                                            <p class="card-text">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-clock"></i>
+                                                    @cuenta.FechaApertura?.ToString("dd/MM/yyyy HH:mm")
+                                                </small>
+                                            </p>
+                                            <h3 class="text-primary">₡@cuenta.Total?.ToString("N2")</h3>
+                                            <p class="mb-2">
+                                                <span class="badge bg-info">
+                                                    @cuenta.DetalleCuentas.Count producto(s)
+                                                </span>
+                                            </p>
+                                        </div>
+                                        <div class="card-footer bg-transparent">
+                                            <div class="d-grid gap-2">
+                                                <a asp-page="./AgregarProducto" asp-route-id="@cuenta.Id"
+                                                   class="btn btn-primary">
+                                                    <i class="bi bi-plus"></i> Agregar Producto
+                                                </a>
+                                                <a asp-page="./Details" asp-route-id="@cuenta.Id"
+                                                   class="btn btn-outline-info">
+                                                    <i class="bi bi-eye"></i> Ver Detalle
+                                                </a>
+                                                <a asp-page="./CerrarCuenta" asp-route-id="@cuenta.Id"
+                                                   class="btn btn-outline-success">
+                                                    <i class="bi bi-check-circle"></i> Cerrar Cuenta
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Si no hay cuentas abiertas muestra un mensaje  -->
+                        <div class="alert alert-info text-center" role="alert">
+                            <i class="bi bi-info-circle"></i> No hay cuentas abiertas en este momento
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cuentas cerradas -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <!-- encabezado gris para el historial de cuentas cerradas -->
+                <div class="card-header bg-secondary text-white">
+               <!-- <div class="card-header bg-secondary text-white"> -->
+                    <h4 class="mb-0">
+                        <i class="bi bi-folder-check"></i> Últimas Cuentas Cerradas
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @if (Model.CuentasCerradas.Any())
+                    {
+                            <!-- si hay cuentas cerradas se muestran en una tabla -->
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Cliente</th>
+                                        <th>Fecha</th>
+                                        <th>Total</th>
+                                        <th>Método de Pago</th>
+                                        <th>Productos</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var cuenta in Model.CuentasCerradas)
+                                    {
+                                        <tr>
+                                            <td><strong>@cuenta.NombreCliente</strong></td>
+                                            <td>@cuenta.FechaApertura?.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td class="text-primary fw-bold">₡@cuenta.Total?.ToString("N2")</td>
+                                            <td>
+                                                <span class="badge bg-@(cuenta.MetodoPago == "Efectivo" ? "success" : "info")">
+                                                    @cuenta.MetodoPago
+                                                </span>
+                                            </td>
+                                            <td>@cuenta.DetalleCuentas.Count</td>
+                                            <td>
+                                                <a asp-page="./Details" asp-route-id="@cuenta.Id"
+                                                   class="btn btn-sm btn-outline-info">
+                                                    <i class="bi bi-eye"></i> Ver
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                            <!-- si no hay cuentas cerradas  muestra un mensaje -->
+                        <div class="alert alert-secondary text-center" role="alert">
+                            No hay historial de cuentas cerradas
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

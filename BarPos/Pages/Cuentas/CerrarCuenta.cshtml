@@ -1,0 +1,166 @@
+﻿@page
+@model BarPos.Pages.Cuentas.CerrarCuentaModel
+@{
+}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-cash-coin"></i> Cerrar Cuenta y Procesar Pago
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Resumen de la Cuenta -->
+                    <div class="alert alert-info">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5><i class="bi bi-person"></i> Cliente</h5>
+                                <p class="fs-4 fw-bold mb-0">@Model.Cuenta.NombreCliente</p>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <h5><i class="bi bi-receipt"></i> Total a Pagar</h5>
+                                <p class="fs-3 fw-bold text-primary mb-0">
+                                    ₡@Model.Cuenta.Total?.ToString("N2")
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Productos en la cuenta -->
+                    <div class="mb-4">
+                        <h6 class="mb-3">Productos en la cuenta:</h6>
+                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                            <table class="table table-sm">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Presentación</th>
+                                        <th class="text-center">Cant.</th>
+                                        <th class="text-end">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var detalle in Model.Cuenta.DetalleCuentas)
+                                    {
+                                        <tr>
+                                            <td>@detalle.Presentacion.Producto.Nombre</td>
+                                            <td>@detalle.Presentacion.Nombre</td>
+                                            <td class="text-center">@detalle.Cantidad</td>
+                                            <td class="text-end">₡@detalle.Subtotal?.ToString("N2")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <!-- Formulario de Pago -->
+                    <form method="post">
+                        <input type="hidden" asp-for="Cuenta.Id" />
+                        <input type="hidden" asp-for="Cuenta.Total" />
+
+                        <div class="row g-3">
+                            <!-- Método de Pago -->
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold fs-5">
+                                    <i class="bi bi-credit-card"></i> Método de Pago
+                                </label>
+                                <div class="btn-group w-100" role="group">
+                                    <input type="radio" class="btn-check" name="MetodoPagoSeleccionado"
+                                           id="efectivo" value="Efectivo" checked>
+                                    <label class="btn btn-outline-success btn-lg" for="efectivo">
+                                        <i class="bi bi-cash-stack"></i> Efectivo
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="MetodoPagoSeleccionado"
+                                           id="tarjeta" value="Tarjeta">
+                                    <label class="btn btn-outline-primary btn-lg" for="tarjeta">
+                                        <i class="bi bi-credit-card-2-front"></i> Tarjeta
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Monto Pagado -->
+                            <div class="col-md-12">
+                                <label asp-for="MontoPagadoPorCliente" class="form-label fw-bold fs-5">
+                                    <i class="bi bi-wallet2"></i> Monto Pagado por el Cliente
+                                </label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text">₡</span>
+                                    <input type="number" class="form-control" asp-for="MontoPagadoPorCliente"
+                                           step="0.01" min="0" id="montoPagado" />
+                                </div>
+                                <span asp-validation-for="MontoPagadoPorCliente" class="text-danger"></span>
+                            </div>
+
+                            <!-- Cálculo del Vuelto -->
+                            <div class="col-md-12">
+                                <div class="alert alert-success" id="vueltoInfo">
+                                    <h5 class="mb-2">
+                                        <i class="bi bi-arrow-return-left"></i> Vuelto a Devolver:
+                                    </h5>
+                                    <h2 class="mb-0 fw-bold" id="vueltoTexto">₡0.00</h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div asp-validation-summary="All" class="alert alert-danger mt-3" role="alert"></div>
+
+                        <!-- Botones -->
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-success btn-lg"
+                                    onclick="return confirm('¿Confirma que desea cerrar esta cuenta?');">
+                                <i class="bi bi-check-circle"></i> Confirmar y Cerrar Cuenta
+                            </button>
+                            <a asp-page="./AgregarProducto" asp-route-id="@Model.Cuenta.Id"
+                               class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-arrow-left"></i> Volver a Agregar Productos
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function() {
+            var total = parseFloat(@Model.Cuenta.Total);
+
+            // Calcular vuelto en tiempo real
+            $('#montoPagado').on('input', function() {
+                var montoPagado = parseFloat($(this).val()) || 0;
+                var vuelto = montoPagado - total;
+
+                if (vuelto < 0) {
+                    $('#vueltoInfo').removeClass('alert-success').addClass('alert-danger');
+                    $('#vueltoTexto').text('₡' + vuelto.toFixed(2) + ' (FALTA)');
+                } else {
+                    $('#vueltoInfo').removeClass('alert-danger').addClass('alert-success');
+                    $('#vueltoTexto').text('₡' + vuelto.toFixed(2));
+                }
+            });
+
+            // Cuando selecciona Tarjeta, el monto pagado es exacto
+            $('input[name="MetodoPagoSeleccionado"]').change(function() {
+                if ($(this).val() === 'Tarjeta') {
+                    $('#montoPagado').val(total.toFixed(2));
+                    $('#vueltoTexto').text('₡0.00');
+                }
+            });
+
+            // Trigger inicial
+            $('#montoPagado').trigger('input');
+        });
+    </script>
+}

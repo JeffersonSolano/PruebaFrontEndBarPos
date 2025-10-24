@@ -1,0 +1,80 @@
+﻿@page
+@model BarPos.Pages.Cuentas.EditModel
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0">
+                        <i class="bi bi-pencil"></i> Editar Cantidad
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h5>@Model.DetalleCuenta.Presentacion.Producto.Nombre</h5>
+                        <p class="text-muted">@Model.DetalleCuenta.Presentacion.Nombre</p>
+                        <p class="text-primary">
+                            Precio unitario: ₡@Model.DetalleCuenta.PrecioUnitario.ToString("N2")
+                        </p>
+                    </div>
+
+                    <form method="post">
+                        <input type="hidden" asp-for="DetalleCuenta.Id" />
+                        <input type="hidden" asp-for="DetalleCuenta.CuentaId" />
+                        <input type="hidden" asp-for="DetalleCuenta.PresentacionId" />
+                        <input type="hidden" asp-for="DetalleCuenta.PrecioUnitario" />
+
+                        <div class="mb-3">
+                            <label asp-for="DetalleCuenta.Cantidad" class="form-label fw-bold"></label>
+                            <input type="number" class="form-control form-control-lg"
+                                   asp-for="DetalleCuenta.Cantidad" min="1" max="100" autofocus />
+                            <span asp-validation-for="DetalleCuenta.Cantidad" class="text-danger"></span>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <strong>Nuevo subtotal:</strong>
+                            <span id="nuevoSubtotal">₡0.00</span>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="bi bi-check-circle"></i> Guardar Cambios
+                            </button>
+                            <a asp-page="./AgregarProducto"
+                               asp-route-id="@Model.DetalleCuenta.CuentaId"
+                               class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function() {
+            var precioUnitario = parseFloat(@Model.DetalleCuenta.PrecioUnitario);
+
+            $('#DetalleCuenta_Cantidad').on('input', function() {
+                var cantidad = parseInt($(this).val()) || 0;
+                var subtotal = cantidad * precioUnitario;
+                $('#nuevoSubtotal').text('₡' + subtotal.toFixed(2));
+            });
+
+            // Trigger inicial
+            $('#DetalleCuenta_Cantidad').trigger('input');
+        });
+    </script>
+}

@@ -73,12 +73,18 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.Cuenta).WithMany(p => p.DetalleCuentas)
                 .HasForeignKey(d => d.CuentaId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_DetalleCuenta_Cuentas");
 
             entity.HasOne(d => d.Presentacion).WithMany(p => p.DetalleCuentas)
                 .HasForeignKey(d => d.PresentacionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_DetalleCuenta_Presentaciones");
+
+            entity.HasOne(d => d.Producto).WithMany()
+                .HasForeignKey(d => d.ProductoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_DetalleCuenta_Productos");
         });
 
         modelBuilder.Entity<MovimientosInventario>(entity =>

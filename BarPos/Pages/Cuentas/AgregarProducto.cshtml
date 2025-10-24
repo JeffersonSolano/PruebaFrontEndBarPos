@@ -1,0 +1,236 @@
+﻿@page
+@model BarPos.Pages.Cuentas.AgregarProductoModel
+@{
+    ViewData["Title"] = "Agregar Productos";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Panel izquierdo: Selección de productos -->
+        <div class="col-md-7">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-cart-plus"></i> Agregar Productos
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-page-handler="AgregarProducto">
+                        <input type="hidden" asp-for="CuentaId" />
+                        
+                        <div class="row g-3">
+                            <!-- Selector de Categoría -->
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">1. Seleccione una Categoría</label>
+                                <select class="form-select form-select-lg" id="categoriaSelect" 
+                                        asp-for="CategoriaSeleccionadaId">
+                                    <option value="0">-- Seleccione una categoría --</option>
+                                    @foreach (var categoria in Model.Categorias)
+                                    {
+                                        <option value="@categoria.Id">@categoria.Nombre</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <!-- Selector de Producto -->
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">2. Seleccione un Producto</label>
+                                <select class="form-select form-select-lg" id="productoSelect" 
+                                        asp-for="ProductoSeleccionadoId" disabled>
+                                    <option value="0">-- Primero seleccione una categoría --</option>
+                                </select>
+                            </div>
+
+                            <!-- Selector de Presentación -->
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">3. Seleccione la Presentación</label>
+                                <select class="form-select form-select-lg" id="presentacionSelect" 
+                                        asp-for="PresentacionSeleccionadaId" disabled>
+                                    <option value="0">-- Primero seleccione un producto --</option>
+                                </select>
+                                <div id="precioInfo" class="mt-2 alert alert-info d-none">
+                                    <strong>Precio:</strong> <span id="precioTexto"></span>
+                                </div>
+                            </div>
+
+                            <!-- Cantidad -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">4. Cantidad</label>
+                                <input type="number" class="form-control form-control-lg" 
+                                       asp-for="Cantidad" min="1" max="100" />
+                            </div>
+
+                            <!-- Botón agregar -->
+                            <div class="col-md-6 d-flex align-items-end">
+                                <button type="submit" class="btn btn-success btn-lg w-100">
+                                    <i class="bi bi-plus-circle"></i> Agregar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div asp-validation-summary="All" class="alert alert-danger mt-3" role="alert"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel derecho: Cuenta actual -->
+        <div class="col-md-5">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-receipt-cutoff"></i> Cuenta de @Model.Cuenta.NombreCliente
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h2 class="text-primary">Total: ₡@Model.Cuenta.Total?.ToString("N2")
+                        </h2>
+                        <small class="text-muted">
+                            <i class="bi bi-clock"></i>
+                            Abierta: @Model.Cuenta.FechaApertura?.ToString("dd/MM/yyyy HH:mm")
+                        </small>
+                    </div>
+
+                    <hr />
+
+                    <h5 class="mb-3">Productos en la cuenta:</h5>
+
+                    @if (Model.Cuenta.DetalleCuentas.Any())
+                    {
+                        <div class="list-group">
+                            @foreach (var detalle in Model.Cuenta.DetalleCuentas)
+                            {
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1">@detalle.Presentacion.Producto.Nombre</h6>
+                                            <small class="text-muted">
+                                                @detalle.Presentacion.Nombre
+                                            </small>
+                                        </div>
+                                        <form method="post" asp-page-handler="EliminarDetalle"
+                                              onsubmit="return confirm('¿Eliminar este producto?');">
+                                            <input type="hidden" name="detalleId" value="@detalle.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                    <div class="mt-2">
+                                        <span class="badge bg-secondary">Cantidad: @detalle.Cantidad</span>
+                                        <span class="badge bg-info">
+                                            ₡@detalle.PrecioUnitario.ToString("N2") c/u
+                                        </span>
+                                        <span class="badge bg-primary">
+                                            Subtotal: ₡@detalle.Subtotal?.ToString("N2")
+                                        </span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning text-center">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            No hay productos agregados
+                        </div>
+                    }
+                </div>
+                <div class="card-footer">
+                    <div class="d-grid gap-2">
+                        <a asp-page="./CerrarCuenta" asp-route-id="@Model.Cuenta.Id"
+                           class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle"></i> Cerrar Cuenta y Cobrar
+                        </a>
+                        <a asp-page="./Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Volver a Cuentas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Script para cargar productos y presentaciones dinámicamente (AJAX)
+        $(document).ready(function() {
+            // Cuando cambia la categoría
+            $('#categoriaSelect').change(function() {
+                var categoriaId = $(this).val();
+
+                // Resetear selectores dependientes
+                $('#productoSelect').prop('disabled', true).html('<option value="0">Cargando...</option>');
+                $('#presentacionSelect').prop('disabled', true).html('<option value="0">-- Primero seleccione un producto --</option>');
+                $('#precioInfo').addClass('d-none');
+
+                if (categoriaId > 0) {
+                    // Cargar productos de la categoría
+                    $.ajax({
+                        url: '?handler=ProductosPorCategoria',
+                        type: 'GET',
+                        data: { categoriaId: categoriaId },
+                        success: function(productos) {
+                            var options = '<option value="0">-- Seleccione un producto --</option>';
+
+                            $.each(productos, function(index, producto) {
+                                options += '<option value="' + producto.id + '" data-presentaciones="' +
+                                          JSON.stringify(producto.presentaciones).replace(/"/g, '&quot;') + '">' +
+                                          producto.nombre + '</option>';
+                            });
+
+                            $('#productoSelect').html(options).prop('disabled', false);
+                        },
+                        error: function() {
+                            alert('Error al cargar productos');
+                            $('#productoSelect').html('<option value="0">Error al cargar</option>');
+                        }
+                    });
+                } else {
+                    $('#productoSelect').html('<option value="0">-- Primero seleccione una categoría --</option>');
+                }
+            });
+
+            // Cuando cambia el producto
+            $('#productoSelect').change(function() {
+                var selectedOption = $(this).find('option:selected');
+                var presentaciones = selectedOption.data('presentaciones');
+
+                $('#presentacionSelect').prop('disabled', true).html('<option value="0">-- Seleccione una presentación --</option>');
+                $('#precioInfo').addClass('d-none');
+
+                if (presentaciones && presentaciones.length > 0) {
+                    var options = '<option value="0">-- Seleccione una presentación --</option>';
+
+                    $.each(presentaciones, function(index, presentacion) {
+                        options += '<option value="' + presentacion.id + '" data-precio="' +
+                                  presentacion.precio + '">' + presentacion.nombre +
+                                  ' - ₡' + parseFloat(presentacion.precio).toFixed(2) + '</option>';
+                    });
+
+                    $('#presentacionSelect').html(options).prop('disabled', false);
+                }
+            });
+
+            // Cuando cambia la presentación
+            $('#presentacionSelect').change(function() {
+                var selectedOption = $(this).find('option:selected');
+                var precio = selectedOption.data('precio');
+
+                if (precio) {
+                    $('#precioTexto').text('₡' + parseFloat(precio).toFixed(2));
+                    $('#precioInfo').removeClass('d-none');
+                } else {
+                    $('#precioInfo').addClass('d-none');
+                }
+            });
+        });
+    </script>
+}
